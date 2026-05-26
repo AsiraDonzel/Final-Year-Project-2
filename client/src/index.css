@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+
+  /* ── Card ──────────────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200 overflow-hidden
+           transition-all duration-200;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.05);
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-slate-100 flex items-center gap-3 bg-white;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  /* ── Stat cards (solid dark) ───────────────────────── */
+  .stat-card {
+    @apply rounded-2xl p-5 border overflow-hidden relative transition-all duration-200;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .stat-card:hover {
+    @apply -translate-y-0.5;
+  }
+
+  .stat-card-blue {
+    @apply stat-card bg-blue-800 border-blue-900 text-white;
+  }
+
+  .stat-card-teal {
+    @apply stat-card bg-teal-700 border-teal-800 text-white;
+  }
+
+  .stat-card-slate {
+    @apply stat-card bg-slate-800 border-slate-900 text-white;
+  }
+
+  /* ── Buttons ───────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+           transition-all duration-150 focus:outline-none focus:ring-2
+           focus:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed
+           disabled:transform-none select-none;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-primary {
+    @apply btn bg-blue-700 text-white hover:bg-blue-800 focus:ring-blue-500
+           active:scale-[0.97];
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-slate-700 border border-slate-200
+           hover:bg-slate-50 hover:border-slate-300 focus:ring-blue-400
+           active:scale-[0.97] active:bg-slate-100;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  .btn-danger {
+    @apply btn bg-white text-red-600 border border-red-200
+           hover:bg-red-50 hover:border-red-300 focus:ring-red-400
+           active:scale-[0.97];
+  }
+
+  .btn-success {
+    @apply btn bg-teal-700 text-white hover:bg-teal-800 focus:ring-teal-500
+           active:scale-[0.97];
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+
+  /* ── Table inputs ──────────────────────────────────── */
+  .table-input {
+    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-1.5
+           text-sm text-slate-800 placeholder-slate-400
+           focus:outline-none focus:ring-2 focus:ring-blue-400
+           focus:border-blue-400
+           transition-all duration-150;
+  }
+
+  .table-input.error {
+    @apply border-red-400 bg-red-50 focus:ring-red-400 focus:border-red-400;
+  }
+
+  /* ── Section icon ──────────────────────────────────── */
+  .section-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0;
+  }
+
+  /* ── Step row ──────────────────────────────────────── */
+  .step-row {
+    @apply flex justify-between items-center py-2.5 px-4 rounded-lg text-sm
+           transition-colors duration-150;
+  }
+}
+
+/* ── Staggered row animations ───────────────────────── */
+tbody tr:nth-child(1)  { animation: rowIn 0.18s ease-out both; }
+tbody tr:nth-child(2)  { animation: rowIn 0.18s ease-out 0.03s both; }
+tbody tr:nth-child(3)  { animation: rowIn 0.18s ease-out 0.06s both; }
+tbody tr:nth-child(4)  { animation: rowIn 0.18s ease-out 0.09s both; }
+tbody tr:nth-child(5)  { animation: rowIn 0.18s ease-out 0.12s both; }
+tbody tr:nth-child(6)  { animation: rowIn 0.18s ease-out 0.15s both; }
+tbody tr:nth-child(n+7){ animation: rowIn 0.18s ease-out 0.18s both; }
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Checkbox ───────────────────────────────────────── */
+input[type='checkbox'] {
+  @apply w-4 h-4 cursor-pointer rounded;
+  accent-color: #1d4ed8;
+}
+
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
