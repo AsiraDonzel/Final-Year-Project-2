@@ -14,6 +14,8 @@ export interface LoadItem {
   hours: number;
   /** Number of identical devices (integer ≥ 1) */
   quantity: number;
+  /** Predefined device type ID or 'custom' */
+  deviceType?: string;
 }
 
 /** Body of POST /api/calculate */

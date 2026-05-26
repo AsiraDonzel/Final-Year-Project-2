@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { LoadItem, CalculationResult } from '@shared/types';
+import { findPredefinedDevice } from '../utils/devices';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -9,7 +10,7 @@ function newId(): string {
 }
 
 function createEmptyLoad(): LoadItem {
-  return { id: newId(), name: '', wattage: 0, hours: 0, quantity: 1 };
+  return { id: newId(), name: '', wattage: 0, hours: 0, quantity: 1, deviceType: '' };
 }
 
 // ── Store shape ───────────────────────────────────────────────────────────────
@@ -62,8 +63,17 @@ function validateLoads(loads: LoadItem[]): ValidationErrors {
   const errors: ValidationErrors = {};
   for (const load of loads) {
     const e: Partial<Record<keyof LoadItem, string>> = {};
-    if (load.wattage <= 0 || !isFinite(load.wattage))
-      e.wattage = 'Must be > 0';
+    if (!load.deviceType) {
+      e.deviceType = 'Select a device';
+    }
+    if (load.deviceType === 'custom' && !load.name.trim()) {
+      e.name = 'Required';
+    }
+    if (load.deviceType) {
+      if (load.wattage <= 0 || !isFinite(load.wattage)) {
+        e.wattage = 'Must be > 0';
+      }
+    }
     if (load.hours <= 0 || load.hours > 24 || !isFinite(load.hours))
       e.hours = '0 < hours ≤ 24';
     if (!Number.isInteger(load.quantity) || load.quantity < 1)
@@ -95,13 +105,33 @@ export const useConfigStore = create<ConfigStore>((set, get) => ({
     set(s => {
       const loads = s.loads.map(l => {
         if (l.id !== id) return l;
-        const value =
-          field === 'name'
-            ? String(rawValue)
-            : field === 'quantity'
-            ? parseInt(String(rawValue), 10) || 0
-            : parseFloat(String(rawValue)) || 0;
-        return { ...l, [field]: value };
+        const updated = { ...l };
+        if (field === 'deviceType') {
+          const typeVal = String(rawValue);
+          updated.deviceType = typeVal;
+          if (typeVal === 'custom') {
+            updated.name = '';
+            updated.wattage = 0;
+          } else if (typeVal === '') {
+            updated.name = '';
+            updated.wattage = 0;
+          } else {
+            const dev = findPredefinedDevice(typeVal);
+            if (dev) {
+              updated.name = dev.name;
+              updated.wattage = dev.wattage;
+            }
+          }
+        } else {
+          const value =
+            field === 'name'
+              ? String(rawValue)
+              : field === 'quantity'
+              ? parseInt(String(rawValue), 10) || 0
+              : parseFloat(String(rawValue)) || 0;
+          (updated as any)[field] = value;
+        }
+        return updated;
       });
       const validationErrors = validateLoads(loads);
       return { loads, validationErrors, calculationResult: null };

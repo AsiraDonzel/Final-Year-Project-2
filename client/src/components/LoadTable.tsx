@@ -1,6 +1,7 @@
 import { PlusCircle, Trash2, Table2 } from 'lucide-react';
 import { useConfigStore } from '../store/useConfigStore';
 import type { LoadItem } from '@shared/types';
+import { COMMON_DEVICES } from '../utils/devices';
 
 interface CellInputProps {
   id: string;
@@ -11,10 +12,11 @@ interface CellInputProps {
   max?: number;
   step?: number;
   error?: string;
+  disabled?: boolean;
   onChange: (val: string) => void;
 }
 
-function CellInput({ id, type, value, placeholder, min, max, step, error, onChange }: CellInputProps) {
+function CellInput({ id, type, value, placeholder, min, max, step, error, onChange, disabled }: CellInputProps) {
   return (
     <div className="relative">
       <input
@@ -25,8 +27,11 @@ function CellInput({ id, type, value, placeholder, min, max, step, error, onChan
         min={min}
         max={max}
         step={step}
+        disabled={disabled}
         onChange={e => onChange(e.target.value)}
-        className={`table-input${error ? ' error' : ''}`}
+        className={`table-input${error ? ' error' : ''} ${
+          disabled ? 'bg-slate-50 text-slate-400 border-slate-200/60 cursor-not-allowed select-none' : ''
+        }`}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-err` : undefined}
       />
@@ -112,14 +117,65 @@ export default function LoadTable() {
                       checked={isSel} onChange={() => toggleSel(load.id)}
                       aria-label={`Select row ${idx + 1}`} />
                   </td>
-                  <td className="px-3 py-3">
-                    <CellInput id={`name-${load.id}`} type="text" value={load.name}
-                      placeholder={`Device ${idx + 1}`} onChange={v => updateLoad(load.id, 'name', v)} />
+                  <td className="px-3 py-3 w-64 min-w-[220px]">
+                    <div className="flex flex-col gap-1.5 relative">
+                      <select
+                        id={`device-type-${load.id}`}
+                        value={load.deviceType ?? ''}
+                        onChange={e => updateLoad(load.id, 'deviceType', e.target.value)}
+                        className={`table-input ${err.deviceType ? 'error' : ''}`}
+                        aria-label={`Select device for row ${idx + 1}`}
+                      >
+                        <option value="">Select a device...</option>
+                        {COMMON_DEVICES.map(cat => (
+                          <optgroup key={cat.category} label={cat.category}>
+                            {cat.devices.map(dev => (
+                              <option key={dev.id} value={dev.id}>
+                                {dev.name} ({dev.wattage}W)
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                        <option value="custom">Other (Custom Device)...</option>
+                      </select>
+                      {err.deviceType && (
+                        <p className="absolute left-0 -bottom-4 text-[10px] text-red-500 whitespace-nowrap animate-fade-in">
+                          {err.deviceType}
+                        </p>
+                      )}
+                      
+                      {load.deviceType === 'custom' && (
+                        <div className="mt-2 relative">
+                          <input
+                            id={`name-${load.id}`}
+                            type="text"
+                            value={load.name}
+                            placeholder="e.g. Ring Light"
+                            onChange={e => updateLoad(load.id, 'name', e.target.value)}
+                            className={`table-input ${err.name ? 'error' : ''}`}
+                            aria-label={`Custom device name for row ${idx + 1}`}
+                          />
+                          {err.name && (
+                            <p className="absolute left-0 -bottom-4 text-[10px] text-red-500 whitespace-nowrap animate-fade-in">
+                              {err.name}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-3 py-3">
-                    <CellInput id={`wattage-${load.id}`} type="number" value={load.wattage}
-                      placeholder="e.g. 60" min={0.01} step={0.1} error={err.wattage}
-                      onChange={v => updateLoad(load.id, 'wattage', v)} />
+                  <td className="px-3 py-3 w-28">
+                    <CellInput
+                      id={`wattage-${load.id}`}
+                      type="number"
+                      value={load.wattage}
+                      placeholder="e.g. 60"
+                      min={0.01}
+                      step={0.1}
+                      error={err.wattage}
+                      disabled={load.deviceType !== 'custom'}
+                      onChange={v => updateLoad(load.id, 'wattage', v)}
+                    />
                   </td>
                   <td className="px-3 py-3">
                     <CellInput id={`hours-${load.id}`} type="number" value={load.hours}
