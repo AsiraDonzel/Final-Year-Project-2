@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { BarChart2, FileDown, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { BarChart2, FileDown, CheckCircle, AlertCircle } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useConfigStore, computeTotalEnergyWh } from '../store/useConfigStore';
 
 function StepRow({ step, label, value, highlight = false }: {
@@ -30,33 +32,170 @@ export default function ResultsCard() {
   const result         = useConfigStore(s => s.calculationResult);
   const totalWh        = computeTotalEnergyWh(loads);
 
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfError,   setPdfError]   = useState<string | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
-  const handleGeneratePdf = async () => {
+  // ── Client-side PDF generation ──────────────────────────────────────────────
+  const handleGeneratePdf = () => {
     if (!result) return;
-    setPdfLoading(true);
     setPdfError(null);
+
     try {
-      const res = await fetch('/api/generate-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ loads, systemVoltage, calculationResult: result, cellVoltage, cellCapacityAh }),
+      const r      = result;
+      const doc    = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pageW  = doc.internal.pageSize.getWidth();
+      const pageH  = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const cW     = pageW - margin * 2;
+      let y        = margin;
+
+      const fmt = (n: number, d = 2) => n.toFixed(d);
+      const date = new Date().toLocaleDateString('en-GB', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? `Server error ${res.status}`);
+
+      // Colour palette — matches the app UI
+      const NAVY  : [number,number,number] = [30,  41,  59 ];  // slate-800
+      const BLUE  : [number,number,number] = [29,  78,  216];  // blue-700
+      const TEAL  : [number,number,number] = [15,  118, 110];  // teal-700
+      const SLATE : [number,number,number] = [71,  85,  105];  // slate-600
+      const LIGHT : [number,number,number] = [248, 250, 252];  // slate-50
+
+      // ── Header banner ────────────────────────────────────────────────────
+      doc.setFillColor(...NAVY);
+      doc.rect(0, 0, pageW, 36, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Lithium-Ion Battery System Technical Summary', margin, 15);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Li-Ion Solar Configurator', margin, 23);
+      doc.text(`Generated: ${date}`, margin, 29);
+      y = 50;
+
+      // ── Helpers ───────────────────────────────────────────────────────────
+      const section = (title: string, color: [number,number,number] = BLUE) => {
+        doc.setFillColor(...color);
+        doc.rect(margin, y, cW, 7, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(title.toUpperCase(), margin + 3, y + 5);
+        y += 10;
+        doc.setTextColor(0, 0, 0);
+      };
+
+      const kv = (label: string, value: string) => {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...SLATE);
+        doc.text(label, margin + 2, y);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 30, 30);
+        doc.text(value, margin + 68, y);
+        y += 6;
+      };
+
+      // ── Section 1: Electrical Loads ───────────────────────────────────────
+      section('1. Electrical Loads');
+      autoTable(doc, {
+        startY: y,
+        head: [['Device Name', 'Wattage', 'Hours / Day', 'Quantity', 'Energy (Wh)']],
+        body: loads.map(l => [
+          l.name || '—',
+          `${l.wattage} W`,
+          `${l.hours} h`,
+          String(l.quantity),
+          `${fmt(l.wattage * l.hours * l.quantity)} Wh`,
+        ]),
+        foot: [['', '', '', 'TOTAL',
+          `${fmt(r.totalEnergyWh)} Wh  (${fmt(r.totalEnergyWh / 1000, 3)} kWh)`]],
+        margin:  { left: margin, right: margin },
+        styles:  { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: BLUE,  textColor: 255, fontStyle: 'bold' },
+        footStyles: { fillColor: TEAL,  textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: LIGHT },
+        columnStyles: { 4: { halign: 'right' } },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      y = (doc as any).lastAutoTable.finalY + 12;
+
+      // ── Section 2: System Configuration ──────────────────────────────────
+      section('2. System Configuration');
+      kv('System Bus Voltage:',  `${systemVoltage} V`);
+      kv('Cell Nominal Voltage:', `${cellVoltage} V`);
+      kv('Cell Rated Capacity:', `${cellCapacityAh} Ah`);
+      y += 2;
+
+      // ── Section 3: Sizing Calculation ─────────────────────────────────────
+      section('3. Battery Pack Sizing Calculation', TEAL);
+      kv('Total Daily Energy:', `${fmt(r.totalEnergyWh)} Wh  (${fmt(r.totalEnergyWh / 1000, 3)} kWh)`);
+      kv('Step 1 — Raw Ah demand:', `${fmt(r.totalEnergyWh)} / ${systemVoltage} V = ${fmt(r.requiredAh)} Ah`);
+      kv('Step 2 — After 80% DoD:', `${fmt(r.requiredAh)} / 0.8 = ${fmt(r.effectiveAh)} Ah`);
+      kv('Step 3 — +20% margin:', `${fmt(r.effectiveAh)} x 1.2 = ${fmt(r.finalAh)} Ah`);
+      kv('Step 4 — Series cells (S):', `ceil(${systemVoltage} / ${cellVoltage}) = ${r.seriesCells}`);
+      kv('Step 5 — Parallel strings (P):', `ceil(${fmt(r.finalAh)} / ${cellCapacityAh}) = ${r.parallelStrings}`);
+      y += 2;
+
+      // ── Result box ────────────────────────────────────────────────────────
+      doc.setFillColor(...LIGHT);
+      doc.roundedRect(margin, y, cW, 28, 3, 3, 'F');
+      doc.setDrawColor(...BLUE);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(margin, y, cW, 28, 3, 3, 'S');
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...BLUE);
+      doc.text(`Pack Configuration: ${r.packConfig}`, margin + 6, y + 9);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...SLATE);
+      doc.text(
+        `${r.seriesCells} cells in series  x  ${r.parallelStrings} parallel strings  =  ${r.totalCells} total cells`,
+        margin + 6, y + 16
+      );
+      doc.text(
+        `Pack voltage approx. ${fmt(r.seriesCells * cellVoltage)} V  |  Pack capacity = ${fmt(r.parallelStrings * cellCapacityAh)} Ah`,
+        margin + 6, y + 22
+      );
+      y += 36;
+
+      // ── Section 4: Design Assumptions ────────────────────────────────────
+      section('4. Design Assumptions');
+      const assumptions = [
+        `Cell chemistry: Lithium-Ion (Li-Ion)`,
+        `Cell nominal voltage: ${cellVoltage} V per cell`,
+        `Cell rated capacity: ${cellCapacityAh} Ah per cell`,
+        `Depth of Discharge (DoD): 80% — only 80% of rated capacity is used per cycle`,
+        `Degradation design margin: 20% — pack oversized to compensate for capacity fade over lifetime`,
+        `Series count always rounded up to ensure system voltage is met or exceeded`,
+        `Parallel count always rounded up to ensure energy demand is met`,
+      ];
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(50, 50, 50);
+      for (const line of assumptions) {
+        doc.text(`  ${line}`, margin + 3, y);
+        y += 5.5;
       }
-      const blob = await res.blob();
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url; a.download = 'LiIon-Battery-Report.pdf';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      setPdfError((e as Error).message);
-    } finally {
-      setPdfLoading(false);
+
+      // ── Footer ────────────────────────────────────────────────────────────
+      doc.setFillColor(...NAVY);
+      doc.rect(0, pageH - 12, pageW, 12, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.text(
+        'Generated by Li-Ion Solar Configurator  |  For design reference only — consult a qualified engineer for safety-critical installations.',
+        margin, pageH - 4.5,
+      );
+
+      // ── Trigger download ──────────────────────────────────────────────────
+      doc.save('LiIon-Battery-Report.pdf');
+
+    } catch (err) {
+      console.error('[PDF]', err);
+      setPdfError('PDF generation failed. Please try again.');
     }
   };
 
@@ -164,13 +303,11 @@ export default function ResultsCard() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-1 border-t border-slate-100">
-            <button id="generate-pdf-btn" onClick={handleGeneratePdf} disabled={pdfLoading} className="btn-success">
-              {pdfLoading
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
-                : <><FileDown className="w-4 h-4" /> Download PDF Report</>}
+            <button id="generate-pdf-btn" onClick={handleGeneratePdf} className="btn-success">
+              <FileDown className="w-4 h-4" /> Download PDF Report
             </button>
             <p className="text-xs text-slate-400">
-              Exports a formatted PDF with the full calculation, load table, and assumptions.
+              Generates and downloads a formatted A4 PDF report instantly.
             </p>
           </div>
 
