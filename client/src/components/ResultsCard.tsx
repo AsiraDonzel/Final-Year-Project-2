@@ -9,14 +9,14 @@ function StepRow({ step, label, value, highlight = false }: {
 }) {
   return (
     <div className={`step-row ${highlight ? 'bg-blue-50 border border-blue-100' : 'bg-slate-50 hover:bg-slate-100'}`}>
-      <div className="flex items-center gap-3">
-        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0
+      <div className="flex items-start gap-3 w-full sm:w-auto">
+        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5
           ${highlight ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}`}>
           {step}
         </span>
-        <span className="text-slate-600 text-xs">{label}</span>
+        <span className="text-slate-600 text-xs leading-normal">{label}</span>
       </div>
-      <span className={`font-mono font-semibold text-sm whitespace-nowrap ml-4
+      <span className={`font-mono font-semibold text-sm whitespace-nowrap self-start sm:self-auto ml-8 sm:ml-0
         ${highlight ? 'text-blue-700' : 'text-slate-800'}`}>
         {value}
       </span>
@@ -242,7 +242,7 @@ export default function ResultsCard() {
         </div>
 
         {/* Metric row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-100">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-[1px] bg-slate-100 border-t border-slate-100 overflow-hidden">
           {[
             { label: 'Series (S)',     value: String(r.seriesCells),     sub: 'per string',          color: 'text-blue-700'  },
             { label: 'Parallel (P)',  value: String(r.parallelStrings), sub: 'strings',              color: 'text-teal-700'  },
@@ -302,11 +302,11 @@ export default function ResultsCard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-1 border-t border-slate-100">
-            <button id="generate-pdf-btn" onClick={handleGeneratePdf} className="btn-success">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1 border-t border-slate-100">
+            <button id="generate-pdf-btn" onClick={handleGeneratePdf} className="btn-success w-full sm:w-auto justify-center">
               <FileDown className="w-4 h-4" /> Download PDF Report
             </button>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 text-center sm:text-left">
               Generates and downloads a formatted A4 PDF report instantly.
             </p>
           </div>

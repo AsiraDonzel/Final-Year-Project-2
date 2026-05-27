@@ -64,20 +64,22 @@ export default function LoadTable() {
 
   return (
     <div className="card animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-      <div className="card-header">
-        <div className="section-icon bg-blue-50">
-          <Table2 className="w-4 h-4 text-blue-700" />
+      <div className="card-header flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="section-icon bg-blue-50">
+            <Table2 className="w-4 h-4 text-blue-700" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-800">Electrical Loads</h2>
+            <p className="text-xs text-slate-500 mt-0.5">List every device and its daily usage.</p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="text-sm font-semibold text-slate-800">Electrical Loads</h2>
-          <p className="text-xs text-slate-500 mt-0.5">List every device and its daily usage.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button id="remove-selected-btn" onClick={removeSelected} disabled={!anySelected} className="btn-danger">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <button id="remove-selected-btn" onClick={removeSelected} disabled={!anySelected} className="btn-danger flex-1 sm:flex-none justify-center py-2 text-xs">
             <Trash2 className="w-3.5 h-3.5" />
             {anySelected ? `Remove (${selectedIds.size})` : 'Remove'}
           </button>
-          <button id="add-load-btn" onClick={addLoad} className="btn-primary">
+          <button id="add-load-btn" onClick={addLoad} className="btn-primary flex-1 sm:flex-none justify-center py-2 text-xs">
             <PlusCircle className="w-3.5 h-3.5" />
             Add Row
           </button>
@@ -88,13 +90,13 @@ export default function LoadTable() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="w-10 px-4 py-3 text-left">
+              <th className="w-10 px-2 py-2.5 sm:px-4 sm:py-3 text-left">
                 <input type="checkbox" id="select-all-checkbox" checked={allSelected}
                   onChange={toggleAll} aria-label="Select all rows" />
               </th>
               {['Device Name', 'Wattage (W)', 'Hours / Day', 'Quantity', 'Energy (Wh)'].map((col, i) => (
                 <th key={col}
-                    className={`px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide
+                    className={`px-2 py-2.5 sm:px-3 sm:py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide
                                 ${i === 4 ? 'text-right' : 'text-left'}`}>
                   {col}
                 </th>
@@ -112,12 +114,12 @@ export default function LoadTable() {
                     className={`border-b border-slate-100 transition-colors duration-100
                       ${isSel ? 'bg-blue-50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}
                       hover:bg-blue-50/60`}>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2.5 sm:px-4 sm:py-3">
                     <input type="checkbox" id={`row-check-${load.id}`}
                       checked={isSel} onChange={() => toggleSel(load.id)}
                       aria-label={`Select row ${idx + 1}`} />
                   </td>
-                  <td className="px-3 py-3 w-64 min-w-[220px]">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3 w-64 min-w-[220px]">
                     <div className="flex flex-col gap-1.5 relative">
                       <select
                         id={`device-type-${load.id}`}
@@ -164,7 +166,7 @@ export default function LoadTable() {
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-3 w-28">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3 w-28">
                     <CellInput
                       id={`wattage-${load.id}`}
                       type="number"
@@ -177,17 +179,17 @@ export default function LoadTable() {
                       onChange={v => updateLoad(load.id, 'wattage', v)}
                     />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3">
                     <CellInput id={`hours-${load.id}`} type="number" value={load.hours}
                       placeholder="e.g. 8" min={0.01} max={24} step={0.25} error={err.hours}
                       onChange={v => updateLoad(load.id, 'hours', v)} />
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3">
                     <CellInput id={`qty-${load.id}`} type="number" value={load.quantity}
                       placeholder="1" min={1} step={1} error={err.quantity}
                       onChange={v => updateLoad(load.id, 'quantity', v)} />
                   </td>
-                  <td className="px-3 py-3 text-right">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3 text-right">
                     <span className={`font-mono font-semibold ${wh > 0 ? 'text-teal-700' : 'text-slate-300'}`}>
                       {wh.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                     </span>
@@ -200,10 +202,10 @@ export default function LoadTable() {
 
           <tfoot>
             <tr className="bg-slate-900">
-              <td colSpan={5} className="px-4 py-3 text-xs font-semibold text-right text-slate-400 uppercase tracking-wide">
+              <td colSpan={5} className="px-2 py-2.5 sm:px-4 sm:py-3 text-xs font-semibold text-right text-slate-400 uppercase tracking-wide">
                 Total Daily Energy
               </td>
-              <td className="px-3 py-3 text-right">
+              <td className="px-2 py-2.5 sm:px-3 sm:py-3 text-right">
                 <span className="font-mono font-bold text-sm text-teal-300">
                   {loads.reduce((s, l) => s + energyWh(l), 0)
                     .toLocaleString(undefined, { maximumFractionDigits: 1 })} Wh

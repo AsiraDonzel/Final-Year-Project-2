@@ -82,14 +82,14 @@ export default function SystemConfig() {
           </div>
         )}
 
-        <div className="flex items-center gap-4 pt-1">
-          <button id="calculate-btn" onClick={calculate} disabled={!canCalc} className="btn-primary px-6 py-2 text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-1">
+          <button id="calculate-btn" onClick={calculate} disabled={!canCalc} className="btn-primary w-full sm:w-auto justify-center px-6 py-2 text-sm">
             {isCalculating
               ? <><Loader2 className="w-4 h-4 animate-spin" /> Calculating...</>
               : <><Calculator className="w-4 h-4" /> Calculate Configuration</>}
           </button>
           {totalWh > 0 && !isCalculating && (
-            <span className="text-xs text-slate-400 animate-fade-in">
+            <span className="text-xs text-slate-400 text-center sm:text-left animate-fade-in">
               {totalWh.toLocaleString(undefined, { maximumFractionDigits: 1 })} Wh at {systemVoltage} V
             </span>
           )}

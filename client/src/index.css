@@ -121,7 +121,7 @@
 
   /* ── Step row ──────────────────────────────────────── */
   .step-row {
-    @apply flex justify-between items-center py-2.5 px-4 rounded-lg text-sm
+    @apply flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 py-2.5 px-4 rounded-lg text-sm
            transition-colors duration-150;
   }
 }
