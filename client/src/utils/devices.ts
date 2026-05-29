@@ -46,6 +46,25 @@ export const COMMON_DEVICES: DeviceCategory[] = [
       { id: "projector", name: "Office Projector", wattage: 250 },
       { id: "water-dispenser", name: "Water Dispenser (Hot/Cold)", wattage: 500 }
     ]
+  },
+  {
+    category: "Hospital Equipment",
+    devices: [
+      { id: "infusion-pump", name: "Infusion / Syringe Pump", wattage: 25 },
+      { id: "patient-monitor", name: "Patient Monitor (Vital Signs)", wattage: 80 },
+      { id: "ventilator", name: "Mechanical Ventilator", wattage: 150 },
+      { id: "incubator", name: "Neonatal Incubator", wattage: 300 },
+      { id: "surgical-light", name: "Surgical LED Ceiling Light", wattage: 120 },
+      { id: "defibrillator", name: "Defibrillator (Standby)", wattage: 50 },
+      { id: "suction-pump", name: "Medical Aspirator / Suction Pump", wattage: 200 },
+      { id: "blood-fridge", name: "Blood Bank Refrigerator (Small)", wattage: 300 },
+      { id: "xray-standby", name: "Mobile X-Ray Machine (Standby)", wattage: 100 },
+      { id: "oxygen-concentrator", name: "Oxygen Concentrator", wattage: 400 },
+      { id: "ecg-machine", name: "ECG Machine", wattage: 75 },
+      { id: "ultrasound", name: "Ultrasound Machine", wattage: 300 },
+      { id: "autoclave", name: "Autoclave / Sterilizer", wattage: 2000 },
+      { id: "cpap", name: "CPAP Machine", wattage: 40 }
+    ]
   }
 ];
 

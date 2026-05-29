@@ -7,10 +7,20 @@ const VOLTAGES = [12, 24, 48] as const;
 export default function SystemConfig() {
   const loads         = useConfigStore(s => s.loads);
   const systemVoltage = useConfigStore(s => s.systemVoltage);
+  const cellVoltage   = useConfigStore(s => s.cellVoltage);
   const isCalculating = useConfigStore(s => s.isCalculating);
   const calcError     = useConfigStore(s => s.calcError);
   const setVoltage    = useConfigStore(s => s.setSystemVoltage);
   const calculate     = useConfigStore(s => s.calculate);
+
+  const getSeriesCells = (sysV: number, cellV: number) => {
+    if (cellV === 3.7) {
+      if (sysV === 12) return 3;
+      if (sysV === 24) return 7;
+      if (sysV === 48) return 14;
+    }
+    return Math.ceil(sysV / cellV);
+  };
 
   const totalWh = computeTotalEnergyWh(loads);
   const canCalc = totalWh > 0 && !isCalculating;
@@ -34,7 +44,7 @@ export default function SystemConfig() {
           <div className="flex flex-wrap gap-2">
             {VOLTAGES.map(v => {
               const active = systemVoltage === v;
-              const s = Math.ceil(v / 3.7);
+              const s = getSeriesCells(v, cellVoltage);
               return (
                 <button
                   key={v}
@@ -57,7 +67,11 @@ export default function SystemConfig() {
             })}
           </div>
           <p className="text-xs text-slate-400 mt-2">
-            Cells in series: S = ceil({systemVoltage} / 3.7) = <strong className="text-slate-600">{Math.ceil(systemVoltage / 3.7)}</strong>
+            Cells in series: {cellVoltage === 3.7 ? (
+              <>Standard {systemVoltage}V Li-ion = <strong className="text-slate-600">{getSeriesCells(systemVoltage, cellVoltage)}S</strong></>
+            ) : (
+              <>S = ceil({systemVoltage} / {cellVoltage}) = <strong className="text-slate-600">{getSeriesCells(systemVoltage, cellVoltage)}S</strong></>
+            )}
           </p>
           <select id="system-voltage-select" value={systemVoltage}
             onChange={e => setVoltage(parseInt(e.target.value, 10) as 12 | 24 | 48)}

@@ -163,7 +163,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     kvRow('Step 1 — Raw Ah demand:',    `${fmt(cr.totalEnergyWh)} / ${systemVoltage} V = ${fmt(cr.requiredAh)} Ah`);
     kvRow('Step 2 — After 80% DoD:',   `${fmt(cr.requiredAh)} / 0.8 = ${fmt(cr.effectiveAh)} Ah`);
     kvRow('Step 3 — +20% margin:',     `${fmt(cr.effectiveAh)} x 1.2 = ${fmt(cr.finalAh)} Ah`);
-    kvRow('Step 4 — Series cells (S):', `ceil(${systemVoltage} / ${cellVoltage}) = ${cr.seriesCells}`);
+    const step4Label = cellVoltage === 3.7
+      ? `Standard Li-ion configuration (${systemVoltage}V)`
+      : `ceil(${systemVoltage} / ${cellVoltage})`;
+    kvRow('Step 4 — Series cells (S):', `${step4Label} = ${cr.seriesCells}`);
     kvRow('Step 5 — Parallel strings (P):', `ceil(${fmt(cr.finalAh)} / ${cellCapacityAh}) = ${cr.parallelStrings}`);
     y += 2;
 

@@ -76,8 +76,13 @@ export function calculateBatteryConfig(input: CalcInput): CalcOutput {
   // ── Step 3: degradation design margin (× 1.2) ────────────────
   const finalAh = effectiveAh * 1.2;
 
-  // ── Step 4: series count (always round up) ──────────────────
-  const seriesCells = Math.ceil(systemVoltage / cellVoltage);
+  // ── Step 4: series count (always round up, with overrides for standard 3.7V Li-ion cells) ──────────────────
+  let seriesCells = Math.ceil(systemVoltage / cellVoltage);
+  if (cellVoltage === 3.7) {
+    if (systemVoltage === 12) seriesCells = 3;
+    else if (systemVoltage === 24) seriesCells = 7;
+    else if (systemVoltage === 48) seriesCells = 14;
+  }
 
   // ── Step 5: parallel count (always round up) ─────────────────
   const parallelStrings = Math.ceil(finalAh / cellCapacityAh);

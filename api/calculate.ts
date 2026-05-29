@@ -40,7 +40,12 @@ function calculateBatteryConfig(
   const requiredAh     = totalEnergyWh / systemVoltage;   // Step 1
   const effectiveAh    = requiredAh / 0.8;                // Step 2 — 80 % DoD
   const finalAh        = effectiveAh * 1.2;               // Step 3 — 20 % margin
-  const seriesCells    = Math.ceil(systemVoltage / cellVoltage);
+  let seriesCells = Math.ceil(systemVoltage / cellVoltage);
+  if (cellVoltage === 3.7) {
+    if (systemVoltage === 12) seriesCells = 3;
+    else if (systemVoltage === 24) seriesCells = 7;
+    else if (systemVoltage === 48) seriesCells = 14;
+  }
   const parallelStrings = Math.ceil(finalAh / cellCapacityAh);
   const totalCells     = seriesCells * parallelStrings;
 

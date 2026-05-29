@@ -133,7 +133,10 @@ export default function ResultsCard() {
       kv('Step 1 — Raw Ah demand:', `${fmt(r.totalEnergyWh)} / ${systemVoltage} V = ${fmt(r.requiredAh)} Ah`);
       kv('Step 2 — After 80% DoD:', `${fmt(r.requiredAh)} / 0.8 = ${fmt(r.effectiveAh)} Ah`);
       kv('Step 3 — +20% margin:', `${fmt(r.effectiveAh)} x 1.2 = ${fmt(r.finalAh)} Ah`);
-      kv('Step 4 — Series cells (S):', `ceil(${systemVoltage} / ${cellVoltage}) = ${r.seriesCells}`);
+      const step4Label = cellVoltage === 3.7
+        ? `Standard Li-ion configuration (${systemVoltage}V)`
+        : `ceil(${systemVoltage} / ${cellVoltage})`;
+      kv('Step 4 — Series cells (S):', `${step4Label} = ${r.seriesCells}`);
       kv('Step 5 — Parallel strings (P):', `ceil(${fmt(r.finalAh)} / ${cellCapacityAh}) = ${r.parallelStrings}`);
       y += 2;
 
@@ -271,7 +274,7 @@ export default function ResultsCard() {
           <StepRow step={1} label={`Raw Ah demand: ${fmt(r.totalEnergyWh, 1)} Wh / ${systemVoltage} V`} value={`${fmt(r.requiredAh)} Ah`} />
           <StepRow step={2} label="Depth of Discharge correction (/ 0.80) — only 80% of capacity used per cycle" value={`${fmt(r.effectiveAh)} Ah`} />
           <StepRow step={3} label="Degradation margin (* 1.20) — 20% headroom for capacity fade over lifetime" value={`${fmt(r.finalAh)} Ah`} />
-          <StepRow step={4} label={`Cells in series: ceil(${systemVoltage} / ${cellVoltage} V)`} value={`S = ${r.seriesCells}`} highlight />
+          <StepRow step={4} label={cellVoltage === 3.7 ? `Cells in series: Standard Li-ion (${systemVoltage}V)` : `Cells in series: ceil(${systemVoltage} / ${cellVoltage} V)`} value={`S = ${r.seriesCells}`} highlight />
           <StepRow step={5} label={`Parallel strings: ceil(${fmt(r.finalAh)} / ${cellCapacityAh} Ah)`} value={`P = ${r.parallelStrings}`} highlight />
           <StepRow step={6} label={`Total cells: ${r.seriesCells} * ${r.parallelStrings}`} value={`${r.totalCells} cells`} />
         </div>
